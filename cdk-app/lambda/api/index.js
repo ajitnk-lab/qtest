@@ -140,7 +140,28 @@ async function updateItem(id, item) {
     ConditionExpression: `attribute_exists(${PRIMARY_KEY})`
   };
   
-  await dynamodb.put(params).promise();
+// Import the AWS SDK for DynamoDB DocumentClient
+// This allows for safer parameter handling and query execution
+const AWS = require('aws-sdk');
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+async function updateItem(id, item) {
+  // Ensure the ID in the path matches the item
+  item[PRIMARY_KEY] = id;
+  
+  // Add updated timestamp
+  item.updatedAt = new Date().toISOString();
+  
+  const params = {
+    TableName: TABLE_NAME,
+    Item: AWS.DynamoDB.Converter.marshall(item),
+    // Ensure the item exists
+    ConditionExpression: `attribute_exists(${PRIMARY_KEY})`
+  };
+  
+  await docClient.put(params).promise();
+  return item;
+}
   return item;
 }
 
