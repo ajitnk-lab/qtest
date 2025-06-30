@@ -9,7 +9,15 @@ const PRIMARY_KEY = process.env.PRIMARY_KEY;
  * Lambda handler for CRUD operations on items
  */
 exports.handler = async function(event, context) {
-  console.log('Request event:', JSON.stringify(event));
+// Import DOMPurify for sanitizing user input
+// DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG
+const DOMPurify = require('dompurify');
+
+exports.handler = async function(event, context) {
+  console.log('Request event:', JSON.stringify(DOMPurify.sanitize(event)));
+  
+  let body;
+  let statusCode = 200;
   
   let body;
   let statusCode = 200;
