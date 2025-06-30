@@ -34,7 +34,43 @@ exports.handler = async function(event, context) {
         break;
       case 'POST':
         // Create a new item
-        body = await createItem(JSON.parse(event.body));
+// Import Ajv for JSON schema validation
+    // const Ajv = require("ajv");
+    // const ajv = new Ajv();
+
+    switch(event.httpMethod) {
+      case 'GET':
+        if (event.pathParameters && event.pathParameters.id) {
+          // Get a specific item by ID
+          body = await getItem(event.pathParameters.id);
+        } else {
+          // List all items
+          body = await listItems();
+        }
+        break;
+      case 'POST':
+        // Create a new item
+        // Define a schema for the expected input
+        const schema = {
+          type: "object",
+          properties: {
+            // Define your expected properties here
+          },
+          required: ["name"] // Add required fields
+        };
+        const validate = ajv.compile(schema);
+        if (validate(JSON.parse(event.body))) {
+          body = await createItem(JSON.parse(event.body));
+        } else {
+          throw new Error('Invalid input');
+        }
+        break;
+      case 'PUT':
+        // Update an existing item
+        if (event.pathParameters && event.pathParameters.id) {
+          body = await updateItem(event.pathParameters.id, JSON.parse(event.body));
+        } else {
+          throw new Error('Missing item ID');
         break;
       case 'PUT':
         // Update an existing item
