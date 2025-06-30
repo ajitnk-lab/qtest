@@ -23,8 +23,8 @@ export class ApiStack extends cdk.Stack {
         TABLE_NAME: props.itemsTable.tableName,
         PRIMARY_KEY: 'id',
       },
-      // Configure function for operational excellence
-      tracing: lambda.Tracing.ACTIVE, // X-Ray tracing for observability
+      // X-Ray tracing disabled
+      tracing: lambda.Tracing.DISABLED,
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       description: 'Lambda function to handle CRUD operations for items',
@@ -39,9 +39,7 @@ export class ApiStack extends cdk.Stack {
       description: 'This service handles CRUD operations for items',
       deployOptions: {
         stageName: 'prod',
-        // Enable logging for API Gateway
-        loggingLevel: apigateway.MethodLoggingLevel.INFO,
-        dataTraceEnabled: true,
+        // Logging is disabled for API Gateway
       },
       // Enable CORS
       defaultCorsPreflightOptions: {

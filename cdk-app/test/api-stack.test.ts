@@ -21,7 +21,7 @@ describe('ApiStack', () => {
       Timeout: 30,
       MemorySize: 256,
       TracingConfig: {
-        Mode: 'Active'
+        Mode: 'PassThrough'
       },
       Environment: {
         Variables: {
@@ -48,17 +48,16 @@ describe('ApiStack', () => {
     // Verify the API Gateway REST API is created
     template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
     
-    // Verify the API Gateway has deployment options
+    // Verify the API Gateway has deployment options with logging disabled
     template.hasResourceProperties('AWS::ApiGateway::Stage', {
-      StageName: 'prod',
-      MethodSettings: [
-        {
-          DataTraceEnabled: true,
-          HttpMethod: '*',
-          LoggingLevel: 'INFO',
-          ResourcePath: '/*'
-        }
-      ]
+      StageName: 'prod'
+    });
+    
+    // Verify that logging settings are not present
+    template.hasResource('AWS::ApiGateway::Stage', {
+      Properties: {
+        MethodSettings: cdk.Match.absent()
+      }
     });
   });
 
