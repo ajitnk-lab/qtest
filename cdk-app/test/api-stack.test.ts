@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Template, Match } from 'aws-cdk-lib/assertions';
 import { ApiStack } from '../lib/api-stack';
 import { DatabaseStack } from '../lib/database-stack';
 
@@ -56,7 +56,7 @@ describe('ApiStack', () => {
     // Verify that logging settings are not present
     template.hasResource('AWS::ApiGateway::Stage', {
       Properties: {
-        MethodSettings: cdk.Match.absent()
+        MethodSettings: Match.absent()
       }
     });
   });
