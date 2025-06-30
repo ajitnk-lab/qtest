@@ -131,7 +131,15 @@ async function getItem(id) {
   const response = await dynamodb.get(params).promise();
   
   if (!response.Item) {
-    throw new Error('Item not found');
+const response = await dynamodb.get(params).promise();
+  
+  if (!response.Item) {
+    const error = new Error('Item not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  
+  return response.Item;
   }
   
   return response.Item;
