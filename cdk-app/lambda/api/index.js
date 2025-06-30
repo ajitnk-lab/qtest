@@ -7,8 +7,13 @@ const PRIMARY_KEY = process.env.PRIMARY_KEY;
 
 /**
  * Lambda handler for CRUD operations on items
+ * 
+ * This function handles API Gateway requests for the Items API.
+ * It supports GET, POST, PUT, and DELETE operations for managing items in DynamoDB.
  */
 exports.handler = async function(event, context) {
+  console.log('Request event:', JSON.stringify(event));
+  
   let body;
   let statusCode = 200;
   const headers = {
@@ -54,6 +59,7 @@ exports.handler = async function(event, context) {
         throw new Error(`Unsupported method: "${event.httpMethod}"`);
     }
   } catch (err) {
+    console.error('Error:', err);
     if (err.message.startsWith('Unsupported method')) {
       statusCode = 405; // Method Not Allowed
     } else if (err.message === 'Item not found') {
@@ -87,7 +93,9 @@ async function getItem(id) {
   const response = await dynamodb.get(params).promise();
   
   if (!response.Item) {
-    throw new Error('Item not found');
+    const error = new Error('Item not found');
+    error.statusCode = 404;
+    throw error;
   }
   
   return response.Item;
@@ -101,8 +109,13 @@ async function listItems() {
     TableName: TABLE_NAME
   };
   
-  const response = await dynamodb.scan(params).promise();
-  return response.Items;
+  try {
+    const response = await dynamodb.scan(params).promise();
+    return response.Items;
+  } catch (error) {
+    console.error('Error scanning DynamoDB:', error);
+    throw new Error('Failed to list items');
+  }
 }
 
 /**
