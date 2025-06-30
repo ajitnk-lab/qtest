@@ -107,6 +107,25 @@ The application provides a simple CRUD API for managing items:
 - `PUT /items/{id}` - Update an item
 - `DELETE /items/{id}` - Delete an item
 
+### License Verification Endpoint
+
+The application also provides an endpoint to verify if a q Pro license is active:
+
+- `GET /license/verify` - Verify if a q Pro license is active
+
+The license verification endpoint returns a JSON response with information about the q installation and license status:
+
+```json
+{
+  "isInstalled": true,
+  "isProLicenseActive": true,
+  "licenseInfo": "p4.0",
+  "message": "q Pro license is active"
+}
+```
+
+For more details on the license verification feature, see the [Lambda API README](cdk-app/lambda/api/README.md).
+
 ## Item Schema
 
 Items have the following structure:
@@ -145,6 +164,9 @@ curl -X PUT ${API_URL}items/{id} -H "Content-Type: application/json" -d '{"name"
 
 # Delete an item
 curl -X DELETE ${API_URL}items/{id}
+
+# Verify q Pro license
+curl -X GET ${API_URL}license/verify
 ```
 
 ## Cleanup

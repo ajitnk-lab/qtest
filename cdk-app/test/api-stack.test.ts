@@ -63,6 +63,6 @@ describe('ApiStack', () => {
 
   test('API Gateway Methods Created', () => {
     // Verify the API Gateway methods are created
-    template.resourceCountIs('AWS::ApiGateway::Method', 5);
+    template.resourceCountIs('AWS::ApiGateway::Method', 6); // Updated to include the license verification endpoint
   });
 });
