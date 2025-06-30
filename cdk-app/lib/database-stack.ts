@@ -15,13 +15,7 @@ export class DatabaseStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST, // On-demand capacity for cost optimization
       encryption: dynamodb.TableEncryption.AWS_MANAGED, // Encryption at rest for security
       pointInTimeRecovery: true, // Enable point-in-time recovery for reliability
-billingMode: dynamodb.BillingMode.PAY_PER_REQUEST, // On-demand capacity for cost optimization
-      encryption: dynamodb.TableEncryption.AWS_MANAGED, // Encryption at rest for security
-      pointInTimeRecovery: true, // Enable point-in-time recovery for reliability
       removalPolicy: this.node.tryGetContext('environment') === 'production' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY, // Use RETAIN for production, DESTROY for other environments
-    });
-
-    // Add GSI for efficient queries by category (example secondary access pattern)
     });
 
     // Add GSI for efficient queries by category (example secondary access pattern)
