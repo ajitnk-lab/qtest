@@ -153,7 +153,19 @@ async function listItems() {
     TableName: TABLE_NAME
   };
   
-  const response = await dynamodb.scan(params).promise();
+TableName: TABLE_NAME
+  };
+  
+  try {
+    const response = await dynamodb.scan(params).promise();
+    return response.Items;
+  } catch (error) {
+    console.error('Error scanning DynamoDB:', error);
+    throw new Error('Failed to list items');
+  }
+}
+
+/**
   return response.Items;
 }
 
