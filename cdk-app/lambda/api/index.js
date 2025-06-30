@@ -119,7 +119,29 @@ async function createItem(item) {
     ConditionExpression: `attribute_not_exists(${PRIMARY_KEY})`
   };
   
-  await dynamodb.put(params).promise();
+// Import the DynamoDB DocumentClient for safer query operations
+// import { DynamoDB } from 'aws-sdk';
+// const dynamodb = new DynamoDB.DocumentClient();
+
+async function createItem(item) {
+  // Generate a unique ID if not provided
+  if (!item[PRIMARY_KEY]) {
+    item[PRIMARY_KEY] = uuidv4();
+  }
+  
+  // Add timestamp
+  item.createdAt = new Date().toISOString();
+  
+  const params = {
+    TableName: TABLE_NAME,
+    Item: dynamodb.marshall(item), // Sanitize input using marshall
+    // Ensure the item doesn't already exist
+    ConditionExpression: `attribute_not_exists(${PRIMARY_KEY})`
+  };
+  
+  await dynamodb.putItem(params).promise();
+  return item;
+}
   return item;
 }
 
