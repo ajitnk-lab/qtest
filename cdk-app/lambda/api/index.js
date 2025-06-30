@@ -93,7 +93,20 @@ exports.handler = async function(event, context) {
     }
   } catch (err) {
     console.error('Error:', err);
-    statusCode = 400;
+}
+  } catch (err) {
+    console.error('Error:', err);
+    if (err instanceof Error && err.message.startsWith('Unsupported method')) {
+      statusCode = 405; // Method Not Allowed
+    } else if (err instanceof Error && err.message === 'Item not found') {
+      statusCode = 404; // Not Found
+    } else if (err instanceof Error && err.message === 'Missing item ID') {
+      statusCode = 400; // Bad Request
+    } else {
+      statusCode = 500; // Internal Server Error
+    }
+    body = { error: err.message };
+  }
     body = { error: err.message };
   }
 
