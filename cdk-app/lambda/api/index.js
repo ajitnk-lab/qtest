@@ -1,6 +1,9 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { exec } = require('child_process');
+const util = require('util');
 
+const execPromise = util.promisify(exec);
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = process.env.TABLE_NAME;
 const PRIMARY_KEY = process.env.PRIMARY_KEY;
@@ -20,38 +23,44 @@ exports.handler = async function(event, context) {
   };
 
   try {
-    switch(event.httpMethod) {
-      case 'GET':
-        if (event.pathParameters && event.pathParameters.id) {
-          // Get a specific item by ID
-          body = await getItem(event.pathParameters.id);
-        } else {
-          // List all items
-          body = await listItems();
-        }
-        break;
-      case 'POST':
-        // Create a new item
-        body = await createItem(JSON.parse(event.body));
-        break;
-      case 'PUT':
-        // Update an existing item
-        if (event.pathParameters && event.pathParameters.id) {
-          body = await updateItem(event.pathParameters.id, JSON.parse(event.body));
-        } else {
-          throw new Error('Missing item ID');
-        }
-        break;
-      case 'DELETE':
-        // Delete an item
-        if (event.pathParameters && event.pathParameters.id) {
-          body = await deleteItem(event.pathParameters.id);
-        } else {
-          throw new Error('Missing item ID');
-        }
-        break;
-      default:
-        throw new Error(`Unsupported method: "${event.httpMethod}"`);
+    // Special handling for license verification endpoint
+    if (event.resource === '/license/verify' && event.httpMethod === 'GET') {
+      body = await verifyQProLicense();
+    } else {
+      // Regular CRUD operations
+      switch(event.httpMethod) {
+        case 'GET':
+          if (event.pathParameters && event.pathParameters.id) {
+            // Get a specific item by ID
+            body = await getItem(event.pathParameters.id);
+          } else {
+            // List all items
+            body = await listItems();
+          }
+          break;
+        case 'POST':
+          // Create a new item
+          body = await createItem(JSON.parse(event.body));
+          break;
+        case 'PUT':
+          // Update an existing item
+          if (event.pathParameters && event.pathParameters.id) {
+            body = await updateItem(event.pathParameters.id, JSON.parse(event.body));
+          } else {
+            throw new Error('Missing item ID');
+          }
+          break;
+        case 'DELETE':
+          // Delete an item
+          if (event.pathParameters && event.pathParameters.id) {
+            body = await deleteItem(event.pathParameters.id);
+          } else {
+            throw new Error('Missing item ID');
+          }
+          break;
+        default:
+          throw new Error(`Unsupported method: "${event.httpMethod}"`);
+      }
     }
   } catch (err) {
     if (err.message.startsWith('Unsupported method')) {
@@ -172,5 +181,58 @@ async function deleteItem(id) {
       throw new Error('Item not found');
     }
     throw error;
+  }
+}
+
+/**
+ * Verify if q Pro license is active
+ */
+async function verifyQProLicense() {
+  try {
+    // Check if q is installed and accessible
+    const { stdout, stderr } = await execPromise('which q');
+    
+    if (stderr) {
+      return {
+        isInstalled: false,
+        isProLicenseActive: false,
+        message: 'q is not installed or not in PATH',
+        error: stderr
+      };
+    }
+    
+    // Run q command to check license status
+    // The command runs q with the -c flag to execute a command and exit
+    // The command checks for the presence of a Pro license by examining .z.K (license expiration date)
+    const qPath = stdout.trim();
+    const { stdout: licenseInfo, stderr: licenseError } = await execPromise(`${qPath} -c "0N!string[.z.l];exit 0"`);
+    
+    if (licenseError) {
+      return {
+        isInstalled: true,
+        isProLicenseActive: false,
+        message: 'Failed to check q license status',
+        error: licenseError
+      };
+    }
+    
+    // Parse the license information
+    // Pro licenses typically have a 'p' character in the license string
+    const licenseString = licenseInfo.trim();
+    const isProLicense = licenseString.includes('p');
+    
+    return {
+      isInstalled: true,
+      isProLicenseActive: isProLicense,
+      licenseInfo: licenseString,
+      message: isProLicense ? 'q Pro license is active' : 'q Pro license is not active'
+    };
+  } catch (error) {
+    return {
+      isInstalled: false,
+      isProLicenseActive: false,
+      message: 'Error checking q Pro license',
+      error: error.message
+    };
   }
 }

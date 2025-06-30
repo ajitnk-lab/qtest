@@ -69,6 +69,13 @@ export class ApiStack extends cdk.Stack {
     // DELETE /items/{id} - Delete an item
     singleItem.addMethod('DELETE', new apigateway.LambdaIntegration(itemsFunction));
 
+    // Create an API Gateway resource for /license/verify
+    const license = api.root.addResource('license');
+    const verifyLicense = license.addResource('verify');
+    
+    // GET /license/verify - Verify q Pro license
+    verifyLicense.addMethod('GET', new apigateway.LambdaIntegration(itemsFunction));
+
     // Output the API Gateway URL
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: api.url,
