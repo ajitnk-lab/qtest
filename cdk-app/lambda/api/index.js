@@ -238,6 +238,18 @@ async function deleteItem(id) {
     ReturnValues: 'ALL_OLD'
   };
   
-  const response = await dynamodb.delete(params).promise();
+ReturnValues: 'ALL_OLD'
+  };
+  
+  try {
+    const response = await dynamodb.delete(params).promise();
+    return response.Attributes;
+  } catch (error) {
+    if (error.name === 'ConditionalCheckFailedException') {
+      throw new Error('Item not found');
+    }
+    throw error;
+  }
+}
   return response.Attributes;
 }
