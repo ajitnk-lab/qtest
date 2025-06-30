@@ -100,7 +100,13 @@ exports.handler = async function(event, context) {
         throw new Error(`Unsupported method: "${event.httpMethod}"`);
     }
   } catch (err) {
-    console.error('Error:', err);
+throw new Error(`Unsupported method: "${event.httpMethod}"`);
+    }
+  } catch (err) {
+    console.error(`Error in ${event.httpMethod} operation:`, err);
+    statusCode = 400;
+    body = { error: err.message };
+  }
 }
   } catch (err) {
     console.error('Error:', err);
