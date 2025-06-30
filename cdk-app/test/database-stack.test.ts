@@ -63,4 +63,22 @@ describe('DatabaseStack', () => {
       ]
     });
   });
+
+  test('CloudFormation Outputs Created', () => {
+    // Verify the CloudFormation outputs are created
+    template.hasOutput('ItemsTableName', {});
+    template.hasOutput('ItemsTableArn', {});
+    template.hasOutput('ItemsTableBillingMode', {
+      Value: 'PAY_PER_REQUEST (On-Demand)'
+    });
+    template.hasOutput('ItemsTableEncryption', {
+      Value: 'AWS_MANAGED (SSE)'
+    });
+    template.hasOutput('ItemsTablePointInTimeRecovery', {
+      Value: 'Enabled'
+    });
+    template.hasOutput('ItemsTableGSI', {
+      Value: 'category-index (partition key: category, sort key: createdAt)'
+    });
+  });
 });

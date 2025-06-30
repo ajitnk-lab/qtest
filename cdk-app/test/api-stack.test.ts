@@ -21,7 +21,7 @@ describe('ApiStack', () => {
       Timeout: 30,
       MemorySize: 256,
       TracingConfig: {
-        Mode: 'PassThrough'
+        Mode: 'Active'
       },
       Environment: {
         Variables: {
@@ -48,21 +48,32 @@ describe('ApiStack', () => {
     // Verify the API Gateway REST API is created
     template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
     
-    // Verify the API Gateway has deployment options with logging disabled
+    // Verify the API Gateway has deployment options
     template.hasResourceProperties('AWS::ApiGateway::Stage', {
-      StageName: 'prod'
-    });
-    
-    // Verify that logging settings are not present
-    template.hasResource('AWS::ApiGateway::Stage', {
-      Properties: {
-        MethodSettings: cdk.Match.absent()
-      }
+      StageName: 'prod',
+      MethodSettings: [
+        {
+          DataTraceEnabled: true,
+          HttpMethod: '*',
+          LoggingLevel: 'INFO',
+          ResourcePath: '/*'
+        }
+      ]
     });
   });
 
   test('API Gateway Methods Created', () => {
     // Verify the API Gateway methods are created
     template.resourceCountIs('AWS::ApiGateway::Method', 5);
+  });
+
+  test('CloudFormation Outputs Created', () => {
+    // Verify the CloudFormation outputs are created
+    template.hasOutput('ApiUrl', {});
+    template.hasOutput('LambdaFunctionArn', {});
+    template.hasOutput('ApiGatewayId', {});
+    template.hasOutput('ApiGatewayStageName', {
+      Value: 'prod'
+    });
   });
 });
